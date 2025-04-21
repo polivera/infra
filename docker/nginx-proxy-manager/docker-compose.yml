@@ -1,0 +1,30 @@
+services:
+  npmanager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    networks:
+      - public_network
+    environment:
+      DB_POSTGRES_HOST: "hosts"
+      DB_POSTGRES_PORT: 5432
+      DB_POSTGRES_USER: "unpm"
+      DB_POSTGRES_PASSWORD: "mypassword"
+      DB_POSTGRES_NAME: "npm"
+      # Disable built-in Let's Encrypt
+      DISABLE_IPV6: 'true'
+    volumes:
+      - /mnt/nginx-proxy-manager/data:/data
+      - /mnt/nginx-proxy-manager/letsencrypt:/etc/letsencrypt
+    ports:
+      - "80:80"
+      - "443:443"
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+
+networks:
+  public_network:
+    driver: overlay

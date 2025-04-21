@@ -1,0 +1,53 @@
+## Generate htpasswd
+# htpasswd -c ./.htpasswd admin
+#
+# docker stack deploy -c docker-compose.yml traefik
+#
+## If you want to terminate
+# docker stack rm traefick
+##
+services:
+  traefik:
+    image: traefik:v3.3
+    command:
+      - "--api.insecure=true"  
+      - "--providers.docker=true"
+      - "--providers.swarm=true"  
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.swarm.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.dashboard.address=:8081"
+    ports:
+      - "80:80"
+      - "8081:8081"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    configs:
+      - source: traefik_htpasswd
+        target: /etc/traefik/.htpasswd
+    networks:
+      - traefik-public
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - "traefik.enable=true"
+        # Dashboard Service
+        - "traefik.http.routers.dashboard.rule=Host(`traefik.vicugna.party`)"
+        - "traefik.http.routers.dashboard.service=api@internal"
+        - "traefik.http.routers.dashboard.entrypoints=dashboard"
+        # Basic Auth for Dashboard
+        - "traefik.http.middlewares.auth.basicauth.usersfile=/etc/traefik/.htpasswd"
+        - "traefik.http.routers.dashboard.middlewares=auth"
+        # Explicitly define the service port for Traefik
+        - "traefik.http.services.api.loadbalancer.server.port=8081"
+
+networks:
+  traefik-public:
+    driver: overlay
+    attachable: true
+
+configs:
+  traefik_htpasswd:
+    file: ./.htpasswd
