@@ -4,16 +4,16 @@ services:
     networks:
       - public_network
     environment:
-      DB_POSTGRES_HOST: "hosts"
-      DB_POSTGRES_PORT: 5432
-      DB_POSTGRES_USER: "unpm"
-      DB_POSTGRES_PASSWORD: "mypassword"
-      DB_POSTGRES_NAME: "npm"
+      DB_POSTGRES_HOST: ${DB_POSTGRES_HOST}
+      DB_POSTGRES_PORT: ${DB_POSTGRES_PORT}
+      DB_POSTGRES_USER: ${DB_POSTGRES_USER}
+      DB_POSTGRES_PASSWORD: ${DB_POSTGRES_PASSWORD}
+      DB_POSTGRES_NAME: ${DB_POSTGRES_NAME}
       # Disable built-in Let's Encrypt
       DISABLE_IPV6: 'true'
     volumes:
-      - /mnt/nginx-proxy-manager/data:/data
-      - /mnt/nginx-proxy-manager/letsencrypt:/etc/letsencrypt
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
     ports:
       - "80:80"
       - "443:443"
@@ -25,6 +25,22 @@ services:
       restart_policy:
         condition: on-failure
 
+volumes:
+  npm_data:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=192.168.0.11,rw,soft,nolock
+      device: ":/mnt/Main/nginxproxymanager/data"
+
+  npm_letsencrypt:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=192.168.0.11,rw,soft,nolock
+      device: ":/mnt/Main/nginxproxymanager/letsencrypt"
+
 networks:
   public_network:
     driver: overlay
+    name: public_network
