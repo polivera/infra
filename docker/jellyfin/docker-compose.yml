@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  jellyfin:
+    image: jellyfin/jellyfin
+#    user: "1000:1000"
+    ports:
+      - "7359:7359/udp"  # Auto-discovery service
+      - "1900:1900/udp"  # DLNA service
+    volumes:
+      - jellyfin_config:/config
+      - jellyfin_cache:/cache
+      - jellyfin_movies:/media
+    networks:
+      - public_network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.gpu == true  # Use node with gpu=true tag
+      restart_policy:
+        condition: on-failure
+
+volumes:
+  jellyfin_config:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=192.168.0.11,rw,soft,nolock
+      device: ":/mnt/Main/jellyfin/config"
+  jellyfin_cache:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=192.168.0.11,rw,soft,nolock
+      device: ":/mnt/Main/jellyfin/cache"
+  jellyfin_movies:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=192.168.0.11,rw,soft,nolock
+      device: ":/mnt/Main/movies"
+
+networks:
+  public_network:
+    external: true
