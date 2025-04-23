@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  qbittorrent:
+    image: qbittorrentofficial/qbittorrent-nox:latest
+    ports:
+      # Required ports for torrent network
+      - "6881:6881/tcp"
+      - "6881:6881/udp"
+    volumes:
+      - qbt_config:/config
+      - qbt_downloads:/downloads
+    tmpfs:
+      - /tmp
+    read_only: true
+    networks:
+      - public_network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first
+        failure_action: rollback
+      resources:
+        limits:
+          cpus: '1'
+          memory: 2G
+
+volumes:
+  qbt_config:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=192.168.0.11,rw,soft,nolock
+      device: ":/mnt/Main/torrent/config"
+  qbt_downloads:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=192.168.0.11,rw,soft,nolock
+      device: ":/mnt/Main/torrent/data"
+
+networks:
+  public_network:
+    external: true

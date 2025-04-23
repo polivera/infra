@@ -2,14 +2,10 @@ version: '3.8'
 
 services:
   nextcloud:
-    image: nextcloud:stable
-    init: true
-    stop_signal: SIGKILL
+    image: nextcloud:latest
     networks:
       - public_network
       - redis_network
-    ports:
-      - "8080:80"
     environment:
       # Postgres
       POSTGRES_DB: ${POSTGRES_DB}
@@ -30,12 +26,13 @@ services:
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
       MAIL_DOMAIN: ${MAIL_DOMAIN}
       # Nextcloud
-      NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER}
-      NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD}
+      # NEXTCLOUD_ADMIN_USER: ${NEXTCLOUD_ADMIN_USER}
+      # NEXTCLOUD_ADMIN_PASSWORD: ${NEXTCLOUD_ADMIN_PASSWORD}
       NEXTCLOUD_TRUSTED_DOMAINS: ${NEXTCLOUD_TRUSTED_DOMAINS}
-      NEXTCLOUD_UPDATE: 1  # Tells Nextcloud it's already installed. Comment on new instance
-      NEXTCLOUD_INIT_HTACCESS: "true"
-      # TRUSTED_PROXIES: ${TRUSTED_PROXIES}
+      # NEXTCLOUD_UPDATE: 1
+      # NEXTCLOUD_INIT_SKIP_POSTGIS: 1
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES}
+      OVERWRITEPROTOCOL: https
     volumes:
       - nextcloud_config:/var/www/html/config
       - nextcloud_data:/var/www/html/data
@@ -61,6 +58,7 @@ volumes:
       type: nfs
       o: addr=192.168.0.11,rw,soft,nolock
       device: ":/mnt/Main/nextcloud/data"
+
 
 networks:
   public_network:
