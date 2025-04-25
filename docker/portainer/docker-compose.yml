@@ -35,6 +35,5 @@ networks:
   public_network:
     external: true
 
-
 volumes:
   portainer_data:

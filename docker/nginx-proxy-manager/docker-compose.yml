@@ -1,12 +1,11 @@
-version: '3'
-
 services:
   npmanager:
     image: 'jc21/nginx-proxy-manager:latest'
     networks:
       - public_network
+      - npm_private
     environment:
-      DB_POSTGRES_HOST: ${DB_POSTGRES_HOST}
+      DB_POSTGRES_HOST: npm-db
       DB_POSTGRES_PORT: ${DB_POSTGRES_PORT}
       DB_POSTGRES_USER: ${DB_POSTGRES_USER}
       DB_POSTGRES_PASSWORD: ${DB_POSTGRES_PASSWORD}
@@ -26,6 +25,29 @@ services:
           - node.role == manager
       restart_policy:
         condition: on-failure
+    depends_on:
+      - npm-db
+
+  npm-db:
+    image: postgres:17.4
+    environment:
+      POSTGRES_PASSWORD: ${DB_POSTGRES_PASSWORD}
+      POSTGRES_USER: ${DB_POSTGRES_USER}
+      POSTGRES_DB: ${DB_POSTGRES_NAME}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U your_user -d your_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - npm_private
 
 volumes:
   npm_data:
@@ -42,7 +64,18 @@ volumes:
       o: addr=192.168.0.11,rw,soft,nolock
       device: ":/mnt/Main/nginxproxymanager/letsencrypt"
 
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=192.168.0.11,rw,soft,nolock
+      device: ":/mnt/Databases/npm"
+
 networks:
   public_network:
     driver: overlay
+    attachable: true
     name: public_network
+
+  npm_private:
+    driver: overlay
