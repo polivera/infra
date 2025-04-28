@@ -1,0 +1,52 @@
+services:
+  kavita:
+    image: jvmilazz0/kavita:latest
+    networks:
+      - public_network
+    environment:
+      - TZ=Europe/Madrid
+    volumes:
+#      - kavita_manga:/manga
+#      - kavita_comics:/comics
+      - kavita_books:/books
+      - kavita_config:/kavita/config
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first
+        failure_action: rollback
+
+volumes:
+#  kavita_manga:
+#    driver: local
+#    driver_opts:
+#      type: nfs
+#      o: addr=192.168.0.11,rw,soft,nolock
+#      device: ":/mnt/Main/kavita/manga"
+
+#  kavita_comics:
+#    driver: local
+#    driver_opts:
+#      type: nfs
+#      o: addr=192.168.0.11,rw,soft,nolock
+#      device: ":/mnt/Main/kavita/comics"
+
+  kavita_books:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=192.168.0.11,rw,soft,nolock
+      device: ":/mnt/Main/media/books"
+
+  kavita_config:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=192.168.0.11,rw,soft,nolock
+      device: ":/mnt/Main/kavita/config"
+
+networks:
+  public_network:
+    external: true

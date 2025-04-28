@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  vikunja:
+    image: vikunja/vikunja
+    environment:
+      VIKUNJA_SERVICE_PUBLICURL: https://task.vicugna.party
+      VIKUNJA_DATABASE_HOST: vikunja-db
+      VIKUNJA_DATABASE_PASSWORD: ${DB_PASS}
+      VIKUNJA_DATABASE_TYPE: mysql
+      VIKUNJA_DATABASE_USER: ${DB_USER}
+      VIKUNJA_DATABASE_DATABASE: ${DB_NAME}
+      VIKUNJA_SERVICE_JWTSECRET: ${JTW_SECRET}
+    ports:
+      - "3456:3456"
+    volumes:
+      - vikunja_files:/app/vikunja/files
+    networks:
+      - public_network
+      - vikunja_network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  vikunja-db:
+    image: mariadb:10
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
+    volumes:
+      - vikunja_db:/var/lib/mysql
+    networks:
+      - vikunja_network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u $$MYSQL_USER --password=$$MYSQL_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  vikunja_files:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=192.168.0.11,rw,soft,nolock
+      device: ":/mnt/Main/vikunja/files"
+  vikunja_db:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=192.168.0.11,rw,soft,nolock
+      device: ":/mnt/Databases/vikunja"
+
+networks:
+  vikunja_network:
+    driver: overlay
+  public_network:
+    external: true
