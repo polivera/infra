@@ -2,8 +2,7 @@ version: '3.8'
 
 services:
   jellyfin:
-    image: jellyfin/jellyfin
-#    user: "1000:1000"
+    image: jellyfin/jellyfin:10.10.7
     ports:
       - "7359:7359/udp"  # Auto-discovery service
       - "1900:1900/udp"  # DLNA service

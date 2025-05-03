@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   nextcloud:
-    image: nextcloud:latest
+    image: nextcloud:31.0.4-apache
     networks:
       - public_network
       - redis_network

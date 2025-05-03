@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   qbittorrent:
-    image: qbittorrentofficial/qbittorrent-nox:latest
+    image: qbittorrentofficial/qbittorrent-nox:5.1.0-1
     ports:
       # Required ports for torrent network
       - "6881:6881/tcp"

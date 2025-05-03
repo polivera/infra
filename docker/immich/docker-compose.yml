@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   immich-server:
-    image: ghcr.io/immich-app/immich-server:release
+    image: ghcr.io/immich-app/immich-server:v1.132.3
     init: true
     networks:
       - public_network
@@ -41,7 +41,7 @@ services:
       - immich-database
 
   immich-machine-learning:
-    image: ghcr.io/immich-app/immich-machine-learning:release
+    image: ghcr.io/immich-app/immich-machine-learning:v1.132.3
     init: true
     networks:
       - public_network
