@@ -8,33 +8,15 @@ services:
     ports:
       - "53:53/tcp"    # DNS
       - "53:53/udp"    # DNS
-      - "67:67/udp"    # DHCP server
-      - "68:68/udp"    # DHCP client
-      - "81:80/tcp"    # Web interface (initial setup only)
-      - "82:3000/tcp"    # Web interface (initial setup only)
     volumes:
-      - adguard_work:/opt/adguardhome/work
-      - adguard_conf:/opt/adguardhome/conf
+      - /mnt/gluster/slowpool/adguard/work:/opt/adguardhome/work
+      - /mnt/gluster/slowpool/adguard/conf:/opt/adguardhome/conf
     deploy:
       replicas: 1
       restart_policy:
         condition: on-failure
         delay: 10s
         max_attempts: 3
-
-volumes:
-  adguard_work:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=192.168.0.11,rw,soft,nolock
-      device: ":/mnt/Databases/adguard"
-  adguard_conf:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=192.168.0.11,rw,soft,nolock
-      device: ":/mnt/Main/adguard"
 
 networks:
   public_network:

@@ -13,11 +13,12 @@ services:
       # Disable built-in Let's Encrypt
       DISABLE_IPV6: 'true'
     volumes:
-      - npm_data:/data
-      - npm_letsencrypt:/etc/letsencrypt
+      - /mnt/gluster/slowpool/nginx-proxy-manager/data:/data
+      - /mnt/gluster/slowpool/nginx-proxy-manager/certs:/etc/letsencrypt
     ports:
       - "80:80"
       - "443:443"
+      - "81:81"
     deploy:
       replicas: 1
       placement:
@@ -36,7 +37,7 @@ services:
       POSTGRES_DB: ${DB_POSTGRES_NAME}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - /mnt/gluster/fastpool/nginx-proxy-manager-database:/var/lib/postgresql/data
     deploy:
       replicas: 1
       restart_policy:
@@ -48,28 +49,6 @@ services:
       retries: 5
     networks:
       - npm_private
-
-volumes:
-  npm_data:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=192.168.0.11,rw,soft,nolock
-      device: ":/mnt/Main/nginxproxymanager/data"
-
-  npm_letsencrypt:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=192.168.0.11,rw,soft,nolock
-      device: ":/mnt/Main/nginxproxymanager/letsencrypt"
-
-  postgres_data:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=192.168.0.11,rw,soft,nolock
-      device: ":/mnt/Databases/npm"
 
 networks:
   public_network:
