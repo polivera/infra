@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  broker:
+    image: docker.io/library/redis:7
+    volumes:
+      - /mnt/gluster/fastpool/paperless/redis:/data
+    networks:
+      - paperless_internal
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  db:
+    image: docker.io/library/postgres:17
+    volumes:
+      - /mnt/gluster/fastpool/paperless/database:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASS}
+    networks:
+      - paperless_internal
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  webserver:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    depends_on:
+      - db
+      - broker
+    ports:
+      - "8000:8000"
+    volumes:
+      - /mnt/gluster/slowpool/paperless/data:/usr/src/paperless/data
+      - /mnt/gluster/slowpool/paperless/media:/usr/src/paperless/media
+      - /mnt/gluster/slowpool/paperless/export:/usr/src/paperless/export
+      - /mnt/gluster/slowpool/paperless/consume:/usr/src/paperless/consume
+    environment:
+      PAPERLESS_REDIS: redis://paperless_broker:6379
+      PAPERLESS_DBHOST: paperless_db
+      PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY}
+      PAPERLESS_DBNAME: ${POSTGRES_DB}
+      PAPERLESS_DBUSER: ${POSTGRES_USER}
+      PAPERLESS_DBPASS: ${POSTGRES_PASS}
+      PAPERLESS_OCR_LANGUAGE: spa
+      PAPERLESS_OCR_LANGUAGES: eng
+    networks:
+      - paperless_internal
+      - public_network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      update_config:
+        order: start-first
+        failure_action: rollback
+
+networks:
+  paperless_internal:
+    driver: overlay
+    internal: true
+  public_network:
+    external: true

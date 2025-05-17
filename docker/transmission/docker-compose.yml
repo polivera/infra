@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  transmission:
+    image: linuxserver/transmission:latest
+    ports:
+      - "9091:9091"
+      - "51413:51413"
+      - "51413:51413/udp"
+    environment:
+      TZ: Europe/Madrid
+      USER: ${USER}
+      PASS: ${PASS}
+    volumes:
+      - /mnt/gluster/slowpool/transmission/config:/config
+      - /mnt/gluster/slowpool/transmission/downloads:/downloads
+      - /mnt/gluster/slowpool/transmission/watch:/watch
+    networks:
+      - public_network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+networks:
+  public_network:
+    external: true

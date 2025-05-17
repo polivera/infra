@@ -7,12 +7,16 @@ services:
       # Required ports for torrent network
       - "6881:6881/tcp"
       - "6881:6881/udp"
+      - "85:8080/tcp"
+    environment:
+      - WEBUI_HOST=0.0.0.0
+      - WEBUI_PORT=8080
     volumes:
-      - qbt_config:/config
-      - qbt_downloads:/downloads
+      - /mnt/gluster/slowpool/qbittorrent/config:/config
+      - /mnt/gluster/slowpool/qbittorrent/downloads:/downloads
+      - /mnt/gluster/slowpool/qbittorrent/torrent:/torrent
     tmpfs:
       - /tmp
-    read_only: true
     networks:
       - public_network
     deploy:
@@ -26,20 +30,6 @@ services:
         limits:
           cpus: '1'
           memory: 2G
-
-volumes:
-  qbt_config:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=192.168.0.11,rw,soft,nolock
-      device: ":/mnt/Main/torrent/config"
-  qbt_downloads:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=192.168.0.11,rw,soft,nolock
-      device: ":/mnt/Main/torrent/data"
 
 networks:
   public_network:
