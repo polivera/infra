@@ -15,7 +15,7 @@ services:
       WG_POST_UP: iptables -t nat -A POSTROUTING -s 10.8.0.0/24 -j MASQUERADE; iptables -A FORWARD -i %i -j ACCEPT; iptables -A FORWARD -o %i -j ACCEPT
       WG_POST_DOWN: iptables -t nat -D POSTROUTING -s 10.8.0.0/24 -j MASQUERADE; iptables -D FORWARD -i %i -j ACCEPT; iptables -D FORWARD -o %i -j ACCEPT
     volumes:
-      - etc_wireguard:/etc/wireguard
+      - /mnt/gluster/slowpool/wgeasy:/etc/wireguard
     ports:
       - "51820:51820/udp"
     cap_add:
@@ -26,22 +26,10 @@ services:
       - net.ipv4.conf.all.src_valid_mark=1
     deploy:
       replicas: 1
-      placement:
-        constraints:
-          - node.hostname == swarm-master-01
-      # No placement constraints - can run on any node
       restart_policy:
         condition: on-failure
     networks:
       - public_network
-
-volumes:
-  etc_wireguard:
-    driver: local
-    driver_opts:
-      type: nfs
-      o: addr=192.168.0.11,rw,soft,nolock
-      device: ":/mnt/Main/wireguard"
 
 networks:
   public_network:

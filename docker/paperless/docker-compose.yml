@@ -32,8 +32,6 @@ services:
     depends_on:
       - db
       - broker
-    ports:
-      - "8000:8000"
     volumes:
       - /mnt/gluster/slowpool/paperless/data:/usr/src/paperless/data
       - /mnt/gluster/slowpool/paperless/media:/usr/src/paperless/media
@@ -48,6 +46,7 @@ services:
       PAPERLESS_DBPASS: ${POSTGRES_PASS}
       PAPERLESS_OCR_LANGUAGE: spa
       PAPERLESS_OCR_LANGUAGES: eng
+      PAPERLESS_URL: https://paper.vicugna.party
     networks:
       - paperless_internal
       - public_network

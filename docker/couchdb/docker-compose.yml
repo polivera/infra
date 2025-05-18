@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  couchdb:
+    image: couchdb:3.5.0
+    environment:
+      COUCHDB_USER: ${COUCHDB_USER}
+      COUCHDB_PASSWORD: ${COUCHDB_PASSWORD}
+      COUCHDB_SECRET: ${COUCHDB_SECRET}
+      NODENAME: ${NODENAME}
+    volumes:
+      - /mnt/gluster/slowpool/couchdb:/opt/couchdb/data
+      - /mnt/gluster/fastpool/couchdb:/opt/couchdb/etc/local.d
+    networks:
+      - public_network
+    ports:
+      - "5984:5984"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints:
+          - node.role == manager
+
+networks:
+  public_network:
+    external: true
