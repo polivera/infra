@@ -3,52 +3,48 @@ services:
     image: 'jc21/nginx-proxy-manager:2.12.3'
     networks:
       - public_network
-      - npm_private
     environment:
-      DB_POSTGRES_HOST: npm-db
-      DB_POSTGRES_PORT: ${DB_POSTGRES_PORT}
-      DB_POSTGRES_USER: ${DB_POSTGRES_USER}
-      DB_POSTGRES_PASSWORD: ${DB_POSTGRES_PASSWORD}
-      DB_POSTGRES_NAME: ${DB_POSTGRES_NAME}
+#      DB_POSTGRES_HOST: npm-db
+#      DB_POSTGRES_PORT: ${DB_POSTGRES_PORT}
+#      DB_POSTGRES_USER: ${DB_POSTGRES_USER}
+#      DB_POSTGRES_PASSWORD: ${DB_POSTGRES_PASSWORD}
+#      DB_POSTGRES_NAME: ${DB_POSTGRES_NAME}
       # Disable built-in Let's Encrypt
       DISABLE_IPV6: 'true'
+      DB_SQLITE_FILE: "/db/database.sqlite"
     volumes:
       - /mnt/gluster/slowpool/nginx-proxy-manager/data:/data
       - /mnt/gluster/slowpool/nginx-proxy-manager/certs:/etc/letsencrypt
+      - /mnt/gluster/fastpool/nginx-proxy-manager/sqlite:/db
     ports:
       - "80:80"
       - "443:443"
       - "81:81"
     deploy:
       replicas: 1
-      placement:
-        constraints:
-          - node.role == manager
       restart_policy:
         condition: on-failure
-    depends_on:
-      - npm-db
 
-  npm-db:
-    image: postgres:17.4
-    environment:
-      POSTGRES_PASSWORD: ${DB_POSTGRES_PASSWORD}
-      POSTGRES_USER: ${DB_POSTGRES_USER}
-      POSTGRES_DB: ${DB_POSTGRES_NAME}
-      PGDATA: /var/lib/postgresql/data/pgdata
-    volumes:
-      - /mnt/gluster/fastpool/nginx-proxy-manager-database:/var/lib/postgresql/data
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - npm_private
+#  npm-db:
+#    image: postgres:17.4
+#    environment:
+#      POSTGRES_PASSWORD: ${DB_POSTGRES_PASSWORD}
+#      POSTGRES_USER: ${DB_POSTGRES_USER}
+#      POSTGRES_DB: ${DB_POSTGRES_NAME}
+#      PGDATA: /var/lib/postgresql/data/pgdata
+#    volumes:
+#      - /mnt/gluster/fastpool/nginx-proxy-manager-database:/var/lib/postgresql/data
+#    deploy:
+#      replicas: 1
+#      restart_policy:
+#        condition: on-failure
+#    healthcheck:
+#      test: [ "CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#    networks:
+#      - npm_private
 
 networks:
   public_network:
@@ -56,5 +52,5 @@ networks:
     attachable: true
     name: public_network
 
-  npm_private:
-    driver: overlay
+#  npm_private:
+#    driver: overlay

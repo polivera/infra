@@ -1,0 +1,6 @@
+DB_HOST=localhost
+DB_PORT=3306
+DB_ROOT=rootuser
+DB_USER=someuser
+DB_PASSWD=somepass
+DB_NAME=gitea
