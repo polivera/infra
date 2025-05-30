@@ -50,4 +50,4 @@ networks:
 
 configs:
   traefik_htpasswd:
-    file: ./.htpasswd
+    file: .htpasswd

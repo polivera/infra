@@ -1,0 +1,53 @@
+services:
+  metabase_db:
+    image: postgres:16
+    container_name: metabase_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${METABASE_DB:-metabase}
+      POSTGRES_USER: ${METABASE_DB_USER:-metabase}
+      POSTGRES_PASSWORD: ${METABASE_DB_PASSWORD:-metabase_password}
+    volumes:
+      - metabase_db_data:/var/lib/postgresql/data
+    networks:
+      - metabase_network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${METABASE_DB_USER:-metabase}" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  metabase:
+    image: metabase/metabase:latest
+    container_name: metabase
+    restart: unless-stopped
+    environment:
+      # Use separate PostgreSQL as Metabase's application database
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: ${METABASE_DB:-metabase}
+      MB_DB_PORT: 5432
+      MB_DB_USER: ${METABASE_DB_USER:-metabase}
+      MB_DB_PASS: ${METABASE_DB_PASSWORD:-metabase_password}
+      MB_DB_HOST: metabase_db
+      # Optional: Configure Java heap size
+      JAVA_OPTS: "-Xmx2g"
+    ports:
+      - "3000:3000"
+    networks:
+      - metabase_network
+    depends_on:
+      metabase_db:
+        condition: service_healthy
+    volumes:
+      - metabase_data:/metabase-data
+
+volumes:
+  metabase_db_data:
+    driver: local
+  metabase_data:
+    driver: local
+
+networks:
+  metabase_network:
+    driver: bridge
+    name: metabase_network
