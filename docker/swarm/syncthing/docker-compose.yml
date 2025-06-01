@@ -1,0 +1,29 @@
+services:
+  syncthing:
+    image: syncthing/syncthing:1.29.6
+    networks:
+      - public_network
+    ports:
+#      - "8384:8384"  # Web UI
+      - "22000:22000/tcp"  # File transfers
+      - "22000:22000/udp"  # File transfers
+      - "21027:21027/udp"  # Discovery
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Madrid
+    volumes:
+      - /mnt/gluster/fastpool/syncthing/config:/var/syncthing/config
+      - /mnt/gluster/slowpool/syncthing/data:/var/syncthing/data
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+
+networks:
+  public_network:
+    external: true

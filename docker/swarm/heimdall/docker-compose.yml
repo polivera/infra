@@ -1,0 +1,25 @@
+services:
+  heimdall:
+    image: lscr.io/linuxserver/heimdall:2.6.3
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Europe/Madrid
+    volumes:
+      - /mnt/gluster/fastpool/heimdall/config:/config
+    networks:
+      - public_network
+#    ports:
+#      - "3000:80"
+#      - "3001:443"
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      update_config:
+        order: start-first
+        failure_action: rollback
+
+networks:
+  public_network:
+    external: true
