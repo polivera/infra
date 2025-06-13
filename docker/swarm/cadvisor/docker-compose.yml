@@ -1,0 +1,38 @@
+services:
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.50.0
+    command:
+      - '--housekeeping_interval=10s'
+      - '--docker_only=true'
+      - '--disable_metrics=cpu_topology,disk,tcp,udp,percpu,sched,process,hugetlb,referenced_memory,resctrl,cpuset,advtcp,memory_numa'
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+#    ports:
+#      - "18834:8080"
+    networks:
+      - metrics_network
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    privileged: true
+    devices:
+      - /dev/kmsg
+
+networks:
+  metrics_network:
+    driver: overlay
+    name: metrics_network
