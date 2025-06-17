@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  seafile:
+    image: seafileltd/seafile-mc:12.0.7
+    networks:
+      - public_network
+      - seafile_network
+    environment:
+      DB_HOST: seafile_seafile-db
+      DB_ROOT_PASSWD: ${DB_ROOT_PASS}
+      SEAFILE_ADMIN_EMAIL: ${SEAFILE_ADMIN_EMAIL}
+      SEAFILE_ADMIN_PASSWORD: ${SEAFILE_ADMIN_PASSWORD}
+      SEAFILE_SERVER_LETSENCRYPT: "false"
+      SEAFILE_SERVER_HOSTNAME: ${SEAFILE_SERVER_HOSTNAME}
+    volumes:
+      - /mnt/gluster/slowpool/seafile/data:/shared
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+      update_config:
+        order: start-first
+        failure_action: rollback
+    depends_on:
+      - seafile-db
+
+  seafile-db:
+    image: mariadb:10.11
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
+      MYSQL_LOG_CONSOLE: "true"
+      MARIADB_AUTO_UPGRADE: 1
+    volumes:
+      - /mnt/gluster/fastpool/seafile/mariadb:/var/lib/mysql
+    networks:
+      - seafile_network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root --password=$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+networks:
+  seafile_network:
+    driver: overlay
+  public_network:
+    external: true
