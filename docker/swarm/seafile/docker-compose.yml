@@ -6,13 +6,28 @@ services:
     networks:
       - public_network
       - seafile_network
+    ports:
+      - "8099:80"
     environment:
-      DB_HOST: seafile_seafile-db
-      DB_ROOT_PASSWD: ${DB_ROOT_PASS}
-      SEAFILE_ADMIN_EMAIL: ${SEAFILE_ADMIN_EMAIL}
-      SEAFILE_ADMIN_PASSWORD: ${SEAFILE_ADMIN_PASSWORD}
-      SEAFILE_SERVER_LETSENCRYPT: "false"
-      SEAFILE_SERVER_HOSTNAME: ${SEAFILE_SERVER_HOSTNAME}
+      - DB_HOST=seafile-db
+      - DB_PORT=3306
+      - DB_USER=seafile
+      - DB_ROOT_PASSWD=${DB_ROOT_PASS}
+      - DB_PASSWORD=${DB_PASS}
+      - SEAFILE_MYSQL_DB_CCNET_DB_NAME=ccnet_db
+      - SEAFILE_MYSQL_DB_SEAFILE_DB_NAME=seafile_db
+      - SEAFILE_MYSQL_DB_SEAHUB_DB_NAME=seahub_db
+      - TIME_ZONE=Europe/Madrid
+      - INIT_SEAFILE_ADMIN_EMAIL=${SEAFILE_ADMIN_EMAIL}
+      - INIT_SEAFILE_ADMIN_PASSWORD=${SEAFILE_ADMIN_PASSWORD}
+      - SEAFILE_SERVER_HOSTNAME=${SEAFILE_SERVER_HOSTNAME}
+      - SEAFILE_SERVER_PROTOCOL=https
+      - SITE_ROOT=/
+      - NON_ROOT=false
+      - JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY}
+      - SEAFILE_LOG_TO_STDOUT=false
+      - ENABLE_SEADOC=true
+      - SEADOC_SERVER_URL=https://${SEAFILE_SERVER_HOSTNAME}/sdoc-server
     volumes:
       - /mnt/gluster/slowpool/seafile/data:/shared
     deploy:
@@ -23,9 +38,19 @@ services:
         order: start-first
         failure_action: rollback
     depends_on:
-      - seafile-db
+      - db
 
-  seafile-db:
+  memcached:
+    image: memcached:1.6.29
+    command: memcached -m 256
+    networks:
+      - seafile_network
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  db:
     image: mariadb:10.11
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASS}
@@ -40,7 +65,14 @@ services:
       restart_policy:
         condition: on-failure
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root --password=$MYSQL_ROOT_PASSWORD"]
+      test:
+        [
+          "CMD",
+          "/usr/local/bin/healthcheck.sh",
+          "--connect",
+          "--mariadbupgrade",
+          "--innodb_initialized",
+        ]
       interval: 10s
       timeout: 5s
       retries: 3
