@@ -11,14 +11,12 @@ spec:
       path: /mnt/hdd-storage
       tags:
         - "hdd"
-        - "slow"
     ssd-disk:
       allowScheduling: true
       evictionRequested: false
       path: /mnt/ssd-storage
       tags:
         - "ssd"
-        - "fast"
 ---
 apiVersion: longhorn.io/v1beta2
 kind: Node
@@ -33,14 +31,12 @@ spec:
       path: /mnt/hdd-storage
       tags:
         - "hdd"
-        - "slow"
     ssd-disk:
       allowScheduling: true
       evictionRequested: false
       path: /mnt/ssd-storage
       tags:
         - "ssd"
-        - "fast"
 ---
 apiVersion: longhorn.io/v1beta2
 kind: Node
@@ -55,11 +51,9 @@ spec:
       path: /mnt/hdd-storage
       tags:
         - "hdd"
-        - "slow"
     ssd-disk:
       allowScheduling: true
       evictionRequested: false
       path: /mnt/ssd-storage
       tags:
         - "ssd"
-        - "fast"
