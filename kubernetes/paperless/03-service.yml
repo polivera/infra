@@ -1,0 +1,221 @@
+# Redis Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: paperless
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7
+          ports:
+            - containerPort: 6379
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: redis-data
+---
+# Redis Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: paperless
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+---
+# PostgreSQL Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: paperless
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: paperless-config
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: paperless-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-secrets
+                  key: postgres-password
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - paperless
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - paperless
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-data
+---
+# Paperless Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paperless
+  namespace: paperless
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: paperless
+  template:
+    metadata:
+      labels:
+        app: paperless
+    spec:
+      initContainers:
+        - name: create-dirs
+          image: busybox:1.35
+          command: ['sh', '-c', 'mkdir -p /paperless-storage/data /paperless-storage/media /paperless-storage/export /paperless-storage/consume']
+          volumeMounts:
+            - name: paperless-storage
+              mountPath: /paperless-storage
+      containers:
+        - name: paperless
+          image: ghcr.io/paperless-ngx/paperless-ngx:latest
+          env:
+            - name: PAPERLESS_REDIS
+              value: "redis://redis:6379"
+            - name: PAPERLESS_DBHOST
+              value: "postgres"
+            - name: PAPERLESS_DBNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: paperless-config
+                  key: POSTGRES_DB
+            - name: PAPERLESS_DBUSER
+              valueFrom:
+                configMapKeyRef:
+                  name: paperless-config
+                  key: POSTGRES_USER
+            - name: PAPERLESS_DBPASS
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-secrets
+                  key: postgres-password
+            - name: PAPERLESS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-secrets
+                  key: paperless-secret-key
+            - name: PAPERLESS_OCR_LANGUAGE
+              valueFrom:
+                configMapKeyRef:
+                  name: paperless-config
+                  key: PAPERLESS_OCR_LANGUAGE
+            - name: PAPERLESS_OCR_LANGUAGES
+              valueFrom:
+                configMapKeyRef:
+                  name: paperless-config
+                  key: PAPERLESS_OCR_LANGUAGES
+            - name: PAPERLESS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: paperless-config
+                  key: PAPERLESS_URL
+          ports:
+            - containerPort: 8000
+          volumeMounts:
+            - name: paperless-storage
+              mountPath: /usr/src/paperless/data
+              subPath: data
+            - name: paperless-storage
+              mountPath: /usr/src/paperless/media
+              subPath: media
+            - name: paperless-storage
+              mountPath: /usr/src/paperless/export
+              subPath: export
+            - name: paperless-storage
+              mountPath: /usr/src/paperless/consume
+              subPath: consume
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "300m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: paperless-storage
+          persistentVolumeClaim:
+            claimName: paperless-storage

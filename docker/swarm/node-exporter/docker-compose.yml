@@ -1,0 +1,32 @@
+services:
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    command:
+      - '--path.rootfs=/host'
+      - '--collector.filesystem'
+      - '--collector.diskstats'
+      - '--collector.netdev'
+      - '--collector.systemd'
+    volumes:
+      - /:/host:ro,rslave
+    networks:
+      - metrics_network
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: '0.2'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+    privileged: true
+    pid: host
+
+networks:
+  metrics_network:
+    external: true
