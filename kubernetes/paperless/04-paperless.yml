@@ -1,119 +1,16 @@
-# Redis Deployment
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: redis
-  namespace: paperless
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: redis
-  template:
-    metadata:
-      labels:
-        app: redis
-    spec:
-      containers:
-        - name: redis
-          image: redis:7
-          ports:
-            - containerPort: 6379
-          volumeMounts:
-            - name: redis-data
-              mountPath: /data
-          resources:
-            requests:
-              memory: "128Mi"
-              cpu: "100m"
-            limits:
-              memory: "256Mi"
-              cpu: "200m"
-      volumes:
-        - name: redis-data
-          persistentVolumeClaim:
-            claimName: redis-data
----
-# Redis Service
+# Paperless PVC
 apiVersion: v1
-kind: Service
+kind: PersistentVolumeClaim
 metadata:
-  name: redis
+  name: paperless-paperless-pvc
   namespace: paperless
 spec:
-  selector:
-    app: redis
-  ports:
-    - port: 6379
-      targetPort: 6379
----
-# PostgreSQL Deployment
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: postgres
-  namespace: paperless
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: postgres
-  template:
-    metadata:
-      labels:
-        app: postgres
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:17
-          env:
-            - name: POSTGRES_DB
-              valueFrom:
-                configMapKeyRef:
-                  name: paperless-config
-                  key: POSTGRES_DB
-            - name: POSTGRES_USER
-              valueFrom:
-                configMapKeyRef:
-                  name: paperless-config
-                  key: POSTGRES_USER
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: paperless-secrets
-                  key: postgres-password
-          ports:
-            - containerPort: 5432
-          volumeMounts:
-            - name: postgres-data
-              mountPath: /var/lib/postgresql/data
-          resources:
-            requests:
-              memory: "256Mi"
-              cpu: "200m"
-            limits:
-              memory: "512Mi"
-              cpu: "500m"
-          livenessProbe:
-            exec:
-              command:
-                - pg_isready
-                - -U
-                - paperless
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            exec:
-              command:
-                - pg_isready
-                - -U
-                - paperless
-            initialDelaySeconds: 5
-            periodSeconds: 5
-      volumes:
-        - name: postgres-data
-          persistentVolumeClaim:
-            claimName: postgres-data
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: longhorn-hdd
 ---
 # Paperless Deployment
 apiVersion: apps/v1
@@ -209,4 +106,16 @@ spec:
       volumes:
         - name: paperless-storage
           persistentVolumeClaim:
-            claimName: paperless-storage
+            claimName: paperless-paperless-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paperless
+  namespace: paperless
+spec:
+  selector:
+    app: paperless
+  ports:
+    - port: 8000
+      targetPort: 8000

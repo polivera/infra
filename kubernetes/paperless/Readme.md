@@ -1,4 +1,4 @@
 ## Install Paperless
 
 ### Run file with env
-`env $(cat .env) envsubst < 01-config.yml | kubectl apply -f -`
+`env $(cat .env) envsubst < 01-configs.yml | kubectl apply -f -`

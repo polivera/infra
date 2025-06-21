@@ -11,7 +11,7 @@ metadata:
   namespace: paperless
 type: Opaque
 stringData:
-  postgres-password: "${POSTGRES_PASSWORD}"
+  postgres-password: "${POSTGRES_PASS}"
   paperless-secret-key: "${PAPERLESS_SECRET_KEY}"
 ---
 apiVersion: v1

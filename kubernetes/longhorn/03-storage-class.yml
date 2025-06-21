@@ -5,9 +5,12 @@ metadata:
 provisioner: driver.longhorn.io
 allowVolumeExpansion: true
 parameters:
-  numberOfReplicas: "3" # Change this to the amount of available nodes
+  numberOfReplicas: "3"
   diskSelector: "hdd"
-  nodeSelector: ""
+  dataLocality: "disabled"
+  staleReplicaTimeout: "20"
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
 ---
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
@@ -16,6 +19,9 @@ metadata:
 provisioner: driver.longhorn.io
 allowVolumeExpansion: true
 parameters:
-  numberOfReplicas: "3" # Change this to the amount of available nodes
+  numberOfReplicas: "3"
   diskSelector: "ssd"
-  nodeSelector: ""
+  dataLocality: "disabled"
+  staleReplicaTimeout: "20"
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
