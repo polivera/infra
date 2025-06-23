@@ -1,17 +1,3 @@
-# Paperless PVC
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: paperless-paperless-pvc
-  namespace: paperless
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 2Gi
-  storageClassName: longhorn-hdd
----
 # Paperless Deployment
 apiVersion: apps/v1
 kind: Deployment
@@ -43,6 +29,8 @@ spec:
               value: "redis://redis:6379"
             - name: PAPERLESS_DBHOST
               value: "postgres"
+            - name: PAPERLESS_PORT
+              value: "8000"
             - name: PAPERLESS_DBNAME
               valueFrom:
                 configMapKeyRef:

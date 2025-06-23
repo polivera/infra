@@ -1,17 +1,3 @@
-# PostgreSQL PVC (fast storage)
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: paperless-postgres-pvc
-  namespace: paperless
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
-  storageClassName: longhorn-ssd
----
 # PostgreSQL Deployment
 apiVersion: apps/v1
 kind: Deployment
@@ -52,6 +38,7 @@ spec:
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data
+              subPath: pgdata
           resources:
             requests:
               memory: "256Mi"

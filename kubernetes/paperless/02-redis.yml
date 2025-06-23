@@ -1,17 +1,3 @@
-# Redis PVC
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: paperless-redis-pvc
-  namespace: paperless
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 512Mi
-  storageClassName: longhorn-ssd
----
 # Redis Deployment
 apiVersion: apps/v1
 kind: Deployment
