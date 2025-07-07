@@ -15,7 +15,7 @@ resource "kubernetes_storage_class" "longhorn_hdd" {
     staleReplicaTimeout = var.stale_replica_timeout
   }
 
-  depends_on = [kubectl_manifest.longhorn_installation]
+  depends_on = [helm_release.longhorn]
 }
 
 resource "kubernetes_storage_class" "longhorn_ssd" {
@@ -35,5 +35,5 @@ resource "kubernetes_storage_class" "longhorn_ssd" {
     staleReplicaTimeout = var.stale_replica_timeout
   }
 
-  depends_on = [kubectl_manifest.longhorn_installation]
+  depends_on = [helm_release.longhorn]
 }

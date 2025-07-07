@@ -26,5 +26,5 @@ resource "kubectl_manifest" "longhorn_nodes" {
     }
   })
 
-  depends_on = [kubectl_manifest.longhorn_installation]
+  depends_on = [helm_release.longhorn]
 }
