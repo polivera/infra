@@ -9,25 +9,25 @@ services:
     ports:
       - "8099:80"
     environment:
-      - DB_HOST=seafile-db
-      - DB_PORT=3306
-      - DB_USER=seafile
-      - DB_ROOT_PASSWD=${DB_ROOT_PASS}
-      - DB_PASSWORD=${DB_PASS}
-      - SEAFILE_MYSQL_DB_CCNET_DB_NAME=ccnet_db
-      - SEAFILE_MYSQL_DB_SEAFILE_DB_NAME=seafile_db
-      - SEAFILE_MYSQL_DB_SEAHUB_DB_NAME=seahub_db
-      - TIME_ZONE=Europe/Madrid
-      - INIT_SEAFILE_ADMIN_EMAIL=${SEAFILE_ADMIN_EMAIL}
-      - INIT_SEAFILE_ADMIN_PASSWORD=${SEAFILE_ADMIN_PASSWORD}
-      - SEAFILE_SERVER_HOSTNAME=${SEAFILE_SERVER_HOSTNAME}
-      - SEAFILE_SERVER_PROTOCOL=https
-      - SITE_ROOT=/
-      - NON_ROOT=false
-      - JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY}
-      - SEAFILE_LOG_TO_STDOUT=false
-      - ENABLE_SEADOC=true
-      - SEADOC_SERVER_URL=https://${SEAFILE_SERVER_HOSTNAME}/sdoc-server
+      DB_HOST: seafile_db
+      DB_PORT: 3306
+      DB_USER: seafile
+      DB_ROOT_PASSWD: ${DB_ROOT_PASS}
+      DB_PASSWORD: ${DB_PASS}
+      SEAFILE_MYSQL_DB_CCNET_DB_NAME: ccnet_db
+      SEAFILE_MYSQL_DB_SEAFILE_DB_NAME: seafile_db
+      SEAFILE_MYSQL_DB_SEAHUB_DB_NAME: seahub_db
+      TIME_ZONE: Europe/Madrid
+      INIT_SEAFILE_ADMIN_EMAIL: ${SEAFILE_ADMIN_EMAIL}
+      INIT_SEAFILE_ADMIN_PASSWORD: ${SEAFILE_ADMIN_PASSWORD}
+      SEAFILE_SERVER_HOSTNAME: ${SEAFILE_SERVER_HOSTNAME}
+      SEAFILE_SERVER_PROTOCOL: https
+      SITE_ROOT: /
+      NON_ROOT: "false"
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
+      SEAFILE_LOG_TO_STDOUT: "false"
+      ENABLE_SEADOC: "true"
+      SEADOC_SERVER_URL: https://${SEAFILE_SERVER_HOSTNAME}/sdoc-server
     volumes:
       - /mnt/gluster/slowpool/seafile/data:/shared
     deploy:
