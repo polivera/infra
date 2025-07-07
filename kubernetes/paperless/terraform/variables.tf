@@ -8,11 +8,13 @@ variable "namespace" {
 variable "paperless_url" {
   description = "External URL for Paperless"
   type        = string
+  default     = "https://paperless.vicugna.party"  # Add this line
 }
 
 variable "secrets_file_path" {
   description = "Path to the encrypted secrets file"
   type        = string
+  default     = "../secrets.enc.yaml"
 }
 
 # Storage variables
@@ -142,7 +144,7 @@ variable "paperless_resources" {
 variable "paperless_config" {
   description = "Additional Paperless configuration"
   type = object({
-    time_zone                    = string
+    time_zone                   = string
     ocr_language                = string
     ocr_languages               = string
     consumer_polling            = string
@@ -151,7 +153,7 @@ variable "paperless_config" {
     consumer_subdirs_as_tags    = string
   })
   default = {
-    time_zone                   = "Europe/Madrid"
+    time_zone                  = "Europe/Madrid"
     ocr_language               = "spa"
     ocr_languages              = "eng"
     consumer_polling           = "0"
