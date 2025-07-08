@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  k3s-server:
+    image: rancher/k3s:latest
+    container_name: k3s-server
+    command: server
+    privileged: true
+    restart: unless-stopped
+    environment:
+      - K3S_TOKEN=mysecrettoken
+      - K3S_KUBECONFIG_OUTPUT=/output/kubeconfig.yaml
+      - K3S_KUBECONFIG_MODE=666
+    volumes:
+      - .docker/k3s-server:/var/lib/rancher/k3s
+      - .docker/kubeconfig:/output
+      - .docker/longhorn/hdd:/tmp/longhorn/hdd
+      - .docker/longhorn/ssd:/tmp/longhorn/ssd
+    ports:
+      - "6443:6443"  # Kubernetes API
+      - "80:80"      # HTTP
+      - "443:443"    # HTTPS
+    tmpfs:
+      - /run
+      - /var/run
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+
+volumes:
+  k3s-server:
