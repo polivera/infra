@@ -2,7 +2,7 @@
 resource "kubernetes_stateful_set" "postgres" {
   metadata {
     name      = "postgres"
-    namespace = kubernetes_namespace.paperless.metadata[0].name
+    namespace = var.namespace
   }
 
   spec {
@@ -25,7 +25,7 @@ resource "kubernetes_stateful_set" "postgres" {
       spec {
         container {
           name  = "postgres"
-          image = "postgres:17"
+          image = var.postgres_image
 
           env {
             name = "POSTGRES_DB"
@@ -73,12 +73,12 @@ resource "kubernetes_stateful_set" "postgres" {
 
           resources {
             requests = {
-              memory = "256Mi"
-              cpu    = "200m"
+              memory = var.postgres_resources.requests.memory
+              cpu    = var.postgres_resources.requests.cpu
             }
             limits = {
-              memory = "512Mi"
-              cpu    = "500m"
+              memory = var.postgres_resources.limits.memory
+              cpu    = var.postgres_resources.limits.cpu
             }
           }
 
@@ -142,7 +142,7 @@ resource "kubernetes_service" "postgres_headless" {
 resource "kubernetes_service" "postgres" {
   metadata {
     name      = "postgres"
-    namespace = kubernetes_namespace.paperless.metadata[0].name
+    namespace = var.namespace
   }
 
   spec {
