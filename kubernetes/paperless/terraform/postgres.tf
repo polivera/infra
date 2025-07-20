@@ -138,6 +138,8 @@ resource "kubernetes_service" "postgres_headless" {
       port        = 5432
       target_port = 5432
     }
+
+    type = "ClusterIP"
   }
 }
 

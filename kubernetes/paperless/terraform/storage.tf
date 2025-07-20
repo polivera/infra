@@ -15,7 +15,7 @@ resource "kubernetes_storage_class" "nfs_slow" {
   volume_binding_mode = "WaitForFirstConsumer"
 }
 
-# PostgreSQL PV (using FastPool for database performance)
+// ----- Postgres Configuration ------------------------------------------------
 resource "kubernetes_persistent_volume" "postgres" {
   metadata {
     name = "paperless-postgres-pv"
@@ -38,7 +38,6 @@ resource "kubernetes_persistent_volume" "postgres" {
   }
 }
 
-# PostgreSQL PVC
 resource "kubernetes_persistent_volume_claim" "postgres" {
   metadata {
     name      = "postgres-storage"
@@ -57,3 +56,43 @@ resource "kubernetes_persistent_volume_claim" "postgres" {
     }
   }
 }
+// -----------------------------------------------------------------------------
+
+// ----- Redis Configuration ---------------------------------------------------
+resource "kubernetes_persistent_volume" "redis" {
+  metadata {
+    name = "paperless-redis-pv"
+  }
+  spec {
+    capacity = {
+      storage = var.redis.storage
+    }
+    access_modes = ["ReadWriteOnce"]
+    storage_class_name = kubernetes_storage_class.nfs_fast.metadata[0].name
+    persistent_volume_source {
+      nfs {
+        server = var.redis.nfs-ip
+        path   = var.redis.nfs-path
+      }
+    }
+    persistent_volume_reclaim_policy = "Retain"
+  }
+}
+
+resource "kubernetes_persistent_volume_claim" "redis" {
+  metadata {
+    name      = "redis-storage"
+    namespace = var.namespace
+  }
+  spec {
+    access_modes = ["ReadWriteOnce"]
+    storage_class_name = kubernetes_storage_class.nfs_fast.metadata[0].name
+    volume_name = kubernetes_persistent_volume.redis.metadata[0].name
+    resources {
+      requests = {
+        storage = var.redis.storage
+      }
+    }
+  }
+}
+// -----------------------------------------------------------------------------
