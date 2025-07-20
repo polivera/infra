@@ -10,5 +10,6 @@ resource "kubernetes_secret" "postgres" {
   type = "Opaque"
   data = {
     postgres-password = base64encode(local.secrets.postgres_password)
+    paperless-secret-key = base64encode(local.secrets.paperless_secret_key)
   }
 }

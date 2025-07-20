@@ -89,9 +89,33 @@ resource "kubernetes_stateful_set" "postgres" {
             }
           }
 
+          env {
+            name = "POSTGRES_USER"
+            value_from {
+              config_map_key_ref {
+                name = kubernetes_config_map.postgres.metadata[0].name
+                key  = "POSTGRES_USER"
+              }
+            }
+          }
+
+          env {
+            name = "POSTGRES_DB"
+            value_from {
+              config_map_key_ref {
+                name = kubernetes_config_map.postgres.metadata[0].name
+                key  = "POSTGRES_DB"
+              }
+            }
+          }
+
           liveness_probe {
             exec {
-              command = ["pg_isready", "-U", "upaperless"]
+              command = [
+                "sh",
+                "-c",
+                "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"
+              ]
             }
             initial_delay_seconds = 30
             period_seconds        = 10
@@ -99,7 +123,11 @@ resource "kubernetes_stateful_set" "postgres" {
 
           readiness_probe {
             exec {
-              command = ["pg_isready", "-U", "upaperless"]
+              command = [
+                "sh",
+                "-c",
+                "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"
+              ]
             }
             initial_delay_seconds = 5
             period_seconds        = 5
