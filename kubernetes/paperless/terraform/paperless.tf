@@ -5,7 +5,7 @@ resource "kubernetes_deployment" "paperless" {
     namespace = var.namespace
   }
   spec {
-    replicas             = 1
+    replicas = 1
     selector {
       match_labels = {
         app = "paperless"

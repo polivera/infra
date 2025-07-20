@@ -24,10 +24,13 @@ variable "namespace" {
 variable "postgres" {
   description = "PostgreSQL configuration data"
   type = object({
-    image    = string,
-    storage  = string,
-    nfs-ip   = string
-    nfs-path = string
+    image = string,
+    storage = object({
+      size  = string
+      ip    = string
+      path  = string
+      class = string
+    }),
     requests = object({
       memory = string
       cpu    = string
@@ -38,10 +41,13 @@ variable "postgres" {
     })
   })
   default = {
-    image    = "postgres:17"
-    storage  = "10Gi"
-    nfs-ip   = "192.168.0.11"
-    nfs-path = "/mnt/FastPool/Paperless/postgres"
+    image = "postgres:17"
+    storage = {
+      size  = "10Gi"
+      ip    = "192.168.0.11"
+      path  = "/mnt/FastPool/Paperless/postgres"
+      class = "nfs-fast"
+    }
     requests = {
       memory = "256Mi"
       cpu    = "200m"
@@ -60,8 +66,12 @@ variable "redis" {
   type = object({
     image    = string,
     storage  = string,
-    nfs-ip   = string
-    nfs-path = string
+    storage = object({
+      size  = string
+      ip    = string
+      path  = string
+      class = string
+    }),
     requests = object({
       memory = string
       cpu    = string
@@ -73,9 +83,12 @@ variable "redis" {
   })
   default = {
     image    = "redis:7"
-    storage  = "1Gi"
-    nfs-ip   = "192.168.0.11"
-    nfs-path = "/mnt/FastPool/Paperless/redis"
+    storage = {
+      size  = "1Gi"
+      ip    = "192.168.0.11"
+      path  = "/mnt/FastPool/Paperless/redis"
+      class = "nfs-fast"
+    }
     requests = {
       memory = "128Mi"
       cpu    = "100m"
@@ -98,10 +111,12 @@ variable "paperless" {
       data = object({
         size     = string,
         nfs-path = string
+        class = string
       })
       media = object({
         size     = string,
         nfs-path = string
+        class = string
       })
     }),
     requests = object({
@@ -120,10 +135,12 @@ variable "paperless" {
       data = {
         size     = "50Gi"
         nfs-path = "/mnt/SlowPool/Paperless/data"
+        class = "nfs-slow"
       }
       media = {
         size     = "100Gi"
         nfs-path = "/mnt/SlowPool/Paperless/media"
+        class = "nfs-slow"
       }
     }
     requests = {

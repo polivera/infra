@@ -1,20 +1,3 @@
-# NFS Storage Classes
-resource "kubernetes_storage_class" "nfs_fast" {
-  metadata {
-    name = "nfs-fast"
-  }
-  storage_provisioner = "kubernetes.io/no-provisioner"
-  volume_binding_mode = "WaitForFirstConsumer"
-}
-
-resource "kubernetes_storage_class" "nfs_slow" {
-  metadata {
-    name = "nfs-slow"
-  }
-  storage_provisioner = "kubernetes.io/no-provisioner"
-  volume_binding_mode = "WaitForFirstConsumer"
-}
-
 // ----- Postgres Configuration ------------------------------------------------
 resource "kubernetes_persistent_volume" "postgres" {
   metadata {
@@ -22,15 +5,15 @@ resource "kubernetes_persistent_volume" "postgres" {
   }
   spec {
     capacity = {
-      storage = var.postgres.storage
+      storage = var.postgres.storage.size
     }
     access_modes = ["ReadWriteOnce"]
-    storage_class_name = kubernetes_storage_class.nfs_fast.metadata[0].name
+    storage_class_name = var.postgres.storage.class
 
     persistent_volume_source {
       nfs {
-        server = var.postgres.nfs-ip
-        path   = var.postgres.nfs-path
+        server = var.postgres.storage.ip
+        path   = var.postgres.storage.path
       }
     }
 
@@ -46,12 +29,12 @@ resource "kubernetes_persistent_volume_claim" "postgres" {
 
   spec {
     access_modes = ["ReadWriteOnce"]
-    storage_class_name = kubernetes_storage_class.nfs_fast.metadata[0].name
-    volume_name = kubernetes_persistent_volume.postgres.metadata[0].name
+    storage_class_name = var.postgres.storage.class
+    volume_name        = kubernetes_persistent_volume.postgres.metadata[0].name
 
     resources {
       requests = {
-        storage = var.postgres.storage
+        storage = var.postgres.storage.size
       }
     }
   }
@@ -65,14 +48,14 @@ resource "kubernetes_persistent_volume" "redis" {
   }
   spec {
     capacity = {
-      storage = var.redis.storage
+      storage = var.redis.storage.size
     }
     access_modes = ["ReadWriteOnce"]
-    storage_class_name = kubernetes_storage_class.nfs_fast.metadata[0].name
+    storage_class_name = var.redis.storage.class
     persistent_volume_source {
       nfs {
-        server = var.redis.nfs-ip
-        path   = var.redis.nfs-path
+        server = var.redis.storage.ip
+        path   = var.redis.storage.path
       }
     }
     persistent_volume_reclaim_policy = "Retain"
@@ -86,11 +69,11 @@ resource "kubernetes_persistent_volume_claim" "redis" {
   }
   spec {
     access_modes = ["ReadWriteOnce"]
-    storage_class_name = kubernetes_storage_class.nfs_fast.metadata[0].name
-    volume_name = kubernetes_persistent_volume.redis.metadata[0].name
+    storage_class_name = var.redis.storage.class
+    volume_name        = kubernetes_persistent_volume.redis.metadata[0].name
     resources {
       requests = {
-        storage = var.redis.storage
+        storage = var.redis.storage.size
       }
     }
   }
@@ -108,7 +91,7 @@ resource "kubernetes_persistent_volume" "paperless_data" {
       storage = var.paperless.storage.data.size
     }
     access_modes = ["ReadWriteOnce"]
-    storage_class_name = kubernetes_storage_class.nfs_slow.metadata[0].name
+    storage_class_name = var.paperless.storage.data.class
     persistent_volume_source {
       nfs {
         server = var.paperless.storage.nfs-ip
@@ -126,8 +109,8 @@ resource "kubernetes_persistent_volume_claim" "paperless_data" {
   }
   spec {
     access_modes = ["ReadWriteOnce"]
-    storage_class_name = kubernetes_storage_class.nfs_slow.metadata[0].name
-    volume_name = kubernetes_persistent_volume.paperless_data.metadata[0].name
+    storage_class_name = var.paperless.storage.data.class
+    volume_name        = kubernetes_persistent_volume.paperless_data.metadata[0].name
     resources {
       requests = {
         storage = var.paperless.storage.data.size
@@ -146,7 +129,7 @@ resource "kubernetes_persistent_volume" "paperless_media" {
       storage = var.paperless.storage.media.size
     }
     access_modes = ["ReadWriteOnce"]
-    storage_class_name = kubernetes_storage_class.nfs_slow.metadata[0].name
+    storage_class_name = var.paperless.storage.media.class
     persistent_volume_source {
       nfs {
         server = var.paperless.storage.nfs-ip
@@ -164,8 +147,8 @@ resource "kubernetes_persistent_volume_claim" "paperless_media" {
   }
   spec {
     access_modes = ["ReadWriteOnce"]
-    storage_class_name = kubernetes_storage_class.nfs_slow.metadata[0].name
-    volume_name = kubernetes_persistent_volume.paperless_media.metadata[0].name
+    storage_class_name = var.paperless.storage.media.class
+    volume_name        = kubernetes_persistent_volume.paperless_media.metadata[0].name
     resources {
       requests = {
         storage = var.paperless.storage.media.size
