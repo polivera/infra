@@ -25,6 +25,8 @@ variable "postgres" {
   type = object({
     image   = string,
     storage = string,
+    nfs-ip = string
+    nfs-path = string
     requests = object({
       memory = string
       cpu    = string
@@ -37,6 +39,8 @@ variable "postgres" {
   default = {
     image   = "postgres:17"
     storage = "1Gi"
+    nfs-ip = "192.168.0.11"
+    nfs-path = "/mnt/FastPool/Paperless/postgres"
     requests = {
       memory = "256Mi"
       cpu    = "200m"
