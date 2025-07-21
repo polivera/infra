@@ -1,7 +1,7 @@
 # MetalLB Namespace
 resource "kubernetes_namespace" "metallb_system" {
   metadata {
-    name = "metallb-system"
+    name = var.namespace
   }
 }
 
@@ -21,6 +21,14 @@ resource "helm_release" "metallb" {
   depends_on = [kubernetes_namespace.metallb_system]
 }
 
+
+# ------------------------------------------------------------------------
+# You have to execute this in two steps.
+# First comment the code below this line and apply.
+# After that uncomment the rest of the file
+# ------------------------------------------------------------------------
+
+
 # MetalLB IP Address Pool
 resource "kubernetes_manifest" "metallb_ip_pool" {
   manifest = {
@@ -28,22 +36,14 @@ resource "kubernetes_manifest" "metallb_ip_pool" {
     kind       = "IPAddressPool"
     metadata = {
       name      = "default-pool"
-      namespace = "metallb-system"
+      namespace = var.namespace
     }
     spec = {
       addresses = [
-        "192.168.1.50-192.168.1.150"  # Adjust this range for your network
+        "192.168.0.50-192.168.0.150"  # Adjust this range for your network
       ]
     }
   }
-
-  # Add wait condition for CRDs
-  wait = {
-    fields = {
-      "status.ready" = "true"
-    }
-  }
-
   depends_on = [helm_release.metallb]
 }
 
@@ -54,19 +54,11 @@ resource "kubernetes_manifest" "metallb_l2_advertisement" {
     kind       = "L2Advertisement"
     metadata = {
       name      = "default-advertisement"
-      namespace = "metallb-system"
+      namespace = var.namespace
     }
     spec = {
       ipAddressPools = ["default-pool"]
     }
   }
-
-  # Add wait condition
-  wait = {
-    fields = {
-      "status.ready" = "true"
-    }
-  }
-
   depends_on = [kubernetes_manifest.metallb_ip_pool]
 }
