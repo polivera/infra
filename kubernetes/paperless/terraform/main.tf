@@ -18,3 +18,10 @@ provider "kubernetes" {
 data "sops_file" "secrets" {
   source_file = var.sops_file
 }
+
+# Create namespace
+resource "kubernetes_namespace" "paperless" {
+  metadata {
+    name = var.namespace
+  }
+}

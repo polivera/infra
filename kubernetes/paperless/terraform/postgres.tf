@@ -1,10 +1,3 @@
-# Create namespace
-resource "kubernetes_namespace" "paperless" {
-  metadata {
-    name = var.namespace
-  }
-}
-
 # PostgreSQL StatefulSet
 resource "kubernetes_stateful_set" "postgres" {
   metadata {

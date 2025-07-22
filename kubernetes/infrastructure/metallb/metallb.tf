@@ -40,7 +40,7 @@ resource "kubernetes_manifest" "metallb_ip_pool" {
     }
     spec = {
       addresses = [
-        "192.168.0.50-192.168.0.150"  # Adjust this range for your network
+        "192.168.0.100-192.168.0.150"
       ]
     }
   }

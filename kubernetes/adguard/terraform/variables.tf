@@ -20,31 +20,13 @@ variable "adguard_image" {
 variable "dns_load_balancer_ip" {
   description = "IP address for DNS service (MetalLB)"
   type        = string
-  default     = "192.168.0.50"
-}
-
-variable "web_load_balancer_ip" {
-  description = "IP address for web interface (MetalLB)"
-  type        = string
-  default     = "192.168.0.54"
+  default     = "192.168.0.100"
 }
 
 variable "metallb_pool" {
   description = "MetalLB address pool name"
   type        = string
-  default     = "default"
-}
-
-variable "storage_class" {
-  description = "Storage class for persistent volumes"
-  type        = string
-  default     = "nfs-fast"
-}
-
-variable "storage_size" {
-  description = "Storage size for AdGuard data"
-  type        = string
-  default     = "1Gi"
+  default     = "default-pool"
 }
 
 variable "enable_monitoring" {
@@ -70,12 +52,22 @@ variable "resources" {
       memory = string
       cpu    = string
     })
+    service = object({
+      dns = object({
+        tcp = string
+        udp = string
+      })
+      web = object({
+        tcp = string
+        port = string
+      })
+    })
   })
   default = {
     storage = {
       size  = "1Gi"
       ip    = "192.168.0.11"
-      path  = "/mnt/FastPool/adguard"
+      path  = "/mnt/FastPool/AdGuard/data"
       class = "nfs-fast"
     }
     requests = {
@@ -85,6 +77,16 @@ variable "resources" {
     limits = {
       memory = "512Mi"
       cpu    = "500m"
+    }
+    service = {
+      dns = {
+        tcp = "dns-tcp"
+        udp = "dns-udp"
+      }
+      web = {
+        tcp = "web-tcp"
+        port = "3000"
+      }
     }
   }
 }

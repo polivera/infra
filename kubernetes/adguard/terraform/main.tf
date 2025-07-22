@@ -11,3 +11,10 @@ terraform {
 provider "kubernetes" {
   config_path = var.kubeconfig_path
 }
+
+# Create namespace
+resource "kubernetes_namespace" "adguard" {
+  metadata {
+    name = var.namespace
+  }
+}

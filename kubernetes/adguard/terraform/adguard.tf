@@ -1,37 +1,3 @@
-# ConfigMap for AdGuard configuration
-resource "kubernetes_config_map" "adguard_config" {
-  metadata {
-    name      = "adguard-config"
-    namespace = var.namespace
-  }
-
-  data = {
-    "AdGuardHome.yaml" = templatefile("${path.module}/config/AdGuardHome.yaml.tpl", {
-      bind_host = "0.0.0.0"
-      bind_port = 3000
-      dns_port  = 53
-    })
-  }
-}
-
-# PersistentVolumeClaim for AdGuard data
-resource "kubernetes_persistent_volume_claim" "adguard_data" {
-  metadata {
-    name      = "adguard-data"
-    namespace = var.namespace
-  }
-
-  spec {
-    access_modes = ["ReadWriteOnce"]
-    resources {
-      requests = {
-        storage = var.storage_size
-      }
-    }
-    storage_class_name = var.storage_class
-  }
-}
-
 # Deployment
 resource "kubernetes_deployment" "adguard" {
   metadata {
@@ -77,7 +43,7 @@ resource "kubernetes_deployment" "adguard" {
 
           port {
             name           = "web"
-            container_port = 3000
+            container_port = var.resources.service.web.port
             protocol       = "TCP"
           }
 
@@ -90,11 +56,13 @@ resource "kubernetes_deployment" "adguard" {
           volume_mount {
             name       = "adguard-data"
             mount_path = "/opt/adguardhome/work"
+            sub_path = "work"
           }
 
           volume_mount {
-            name       = "adguard-config"
+            name       = "adguard-data"
             mount_path = "/opt/adguardhome/conf"
+            sub_path = "conf"
           }
 
           resources {
@@ -111,7 +79,7 @@ resource "kubernetes_deployment" "adguard" {
           liveness_probe {
             http_get {
               path = "/"
-              port = 3000
+              port = var.resources.service.web.port
             }
             initial_delay_seconds = 30
             period_seconds        = 10
@@ -120,7 +88,7 @@ resource "kubernetes_deployment" "adguard" {
           readiness_probe {
             http_get {
               path = "/"
-              port = 3000
+              port = var.resources.service.web.port
             }
             initial_delay_seconds = 5
             period_seconds        = 5
@@ -130,14 +98,7 @@ resource "kubernetes_deployment" "adguard" {
         volume {
           name = "adguard-data"
           persistent_volume_claim {
-            claim_name = kubernetes_persistent_volume_claim.adguard_data.metadata[0].name
-          }
-        }
-
-        volume {
-          name = "adguard-config"
-          config_map {
-            name = kubernetes_config_map.adguard_config.metadata[0].name
+            claim_name = kubernetes_persistent_volume_claim.adguard.metadata[0].name
           }
         }
       }
@@ -161,9 +122,9 @@ resource "kubernetes_service" "adguard_web" {
     }
 
     port {
-      name        = "web"
-      port        = 3000
-      target_port = 3000
+      name        = var.resources.service.web.tcp
+      port        = var.resources.service.web.port
+      target_port = var.resources.service.web.port
       protocol    = "TCP"
     }
 
@@ -179,9 +140,6 @@ resource "kubernetes_service" "adguard_dns" {
     labels = {
       app = "adguard"
     }
-    annotations = {
-      "metallb.universe.tf/address-pool" = var.metallb_pool
-    }
   }
 
   spec {
@@ -190,81 +148,49 @@ resource "kubernetes_service" "adguard_dns" {
     }
 
     port {
-      name        = "dns-tcp"
+      name        = var.resources.service.dns.tcp
       port        = 53
       target_port = 53
       protocol    = "TCP"
     }
 
     port {
-      name        = "dns-udp"
+      name        = var.resources.service.dns.udp
       port        = 53
       target_port = 53
       protocol    = "UDP"
     }
-
-    type             = "LoadBalancer"
-    load_balancer_ip = var.dns_load_balancer_ip
   }
 }
 
-# Service for Web UI (LoadBalancer with MetalLB)
-resource "kubernetes_service" "adguard_web_lb" {
-  metadata {
-    name      = "adguard-web-lb"
-    namespace = var.namespace
-    labels = {
-      app = "adguard"
-    }
-    annotations = {
-      "metallb.universe.tf/address-pool" = var.metallb_pool
-    }
-  }
-
-  spec {
-    selector = {
-      app = "adguard"
-    }
-
-    port {
-      name        = "web"
-      port        = 3000
-      target_port = 3000
-      protocol    = "TCP"
-    }
-
-    type             = "LoadBalancer"
-    load_balancer_ip = var.web_load_balancer_ip
-  }
-}
 
 # ServiceMonitor for Prometheus (if using Prometheus Operator)
-resource "kubernetes_manifest" "adguard_service_monitor" {
-  count = var.enable_monitoring ? 1 : 0
-
-  manifest = {
-    apiVersion = "monitoring.coreos.com/v1"
-    kind       = "ServiceMonitor"
-    metadata = {
-      name      = "adguard"
-      namespace = var.namespace
-      labels = {
-        app = "adguard"
-      }
-    }
-    spec = {
-      selector = {
-        matchLabels = {
-          app = "adguard"
-        }
-      }
-      endpoints = [
-        {
-          port     = "metrics"
-          interval = "30s"
-          path     = "/metrics"
-        }
-      ]
-    }
-  }
-}
+# resource "kubernetes_manifest" "adguard_service_monitor" {
+#   count = var.enable_monitoring ? 0 : 0
+#
+#   manifest = {
+#     apiVersion = "monitoring.coreos.com/v0"
+#     kind       = "ServiceMonitor"
+#     metadata = {
+#       name      = "adguard"
+#       namespace = var.namespace
+#       labels = {
+#         app = "adguard"
+#       }
+#     }
+#     spec = {
+#       selector = {
+#         matchLabels = {
+#           app = "adguard"
+#         }
+#       }
+#       endpoints = [
+#         {
+#           port     = "metrics"
+#           interval = "29s"
+#           path     = "/metrics"
+#         }
+#       ]
+#     }
+#   }
+# }
