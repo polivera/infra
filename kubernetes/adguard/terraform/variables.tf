@@ -38,6 +38,7 @@ variable "enable_monitoring" {
 variable "resources" {
   description = "Resource requests and limits"
   type = object({
+    pod = string
     storage = object({
       size  = string
       ip    = string
@@ -64,6 +65,7 @@ variable "resources" {
     })
   })
   default = {
+    pod = "adguard"
     storage = {
       size  = "1Gi"
       ip    = "192.168.0.11"

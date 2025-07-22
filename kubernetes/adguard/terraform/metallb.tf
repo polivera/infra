@@ -12,6 +12,9 @@ resource "kubernetes_service" "adguard_dns_lb" {
   }
 
   spec {
+    selector = {
+      app = var.resources.pod
+    }
     port {
       name = var.resources.service.dns.tcp
       port = 53

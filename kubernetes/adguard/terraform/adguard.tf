@@ -4,7 +4,7 @@ resource "kubernetes_deployment" "adguard" {
     name      = "adguard"
     namespace = var.namespace
     labels = {
-      app = "adguard"
+      app = var.resources.pod
     }
   }
 
@@ -13,14 +13,14 @@ resource "kubernetes_deployment" "adguard" {
 
     selector {
       match_labels = {
-        app = "adguard"
+        app = var.resources.pod
       }
     }
 
     template {
       metadata {
         labels = {
-          app = "adguard"
+          app = var.resources.pod
         }
       }
 
