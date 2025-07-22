@@ -132,38 +132,6 @@ resource "kubernetes_service" "adguard_web" {
   }
 }
 
-# Service for DNS (LoadBalancer with MetalLB)
-resource "kubernetes_service" "adguard_dns" {
-  metadata {
-    name      = "adguard-dns"
-    namespace = var.namespace
-    labels = {
-      app = "adguard"
-    }
-  }
-
-  spec {
-    selector = {
-      app = "adguard"
-    }
-
-    port {
-      name        = var.resources.service.dns.tcp
-      port        = 53
-      target_port = 53
-      protocol    = "TCP"
-    }
-
-    port {
-      name        = var.resources.service.dns.udp
-      port        = 53
-      target_port = 53
-      protocol    = "UDP"
-    }
-  }
-}
-
-
 # ServiceMonitor for Prometheus (if using Prometheus Operator)
 # resource "kubernetes_manifest" "adguard_service_monitor" {
 #   count = var.enable_monitoring ? 0 : 0
