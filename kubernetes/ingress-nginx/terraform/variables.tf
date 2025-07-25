@@ -6,21 +6,21 @@ variable "kubeconfig_path" {
 }
 
 variable "namespace" {
-  description = "Kubernetes namespace for AdGuard"
+  description = "Kubernetes namespace for NGINX Ingress"
   type        = string
-  default     = "adguard"
+  default     = "ingress-nginx"
 }
 
-variable "adguard_image" {
-  description = "AdGuard Home Docker image"
+variable "external_service_namespace" {
+  description = "Kubernetes namespace for external services"
   type        = string
-  default     = "adguard/adguardhome:v0.107.61"
+  default     = "external-services"
 }
 
-variable "dns_load_balancer_ip" {
+variable "ingress_load_balancer_ip" {
   description = "IP address for DNS service (MetalLB)"
   type        = string
-  default     = "192.168.0.100"
+  default     = "192.168.0.101"
 }
 
 variable "metallb_pool" {
@@ -29,22 +29,12 @@ variable "metallb_pool" {
   default     = "default-pool"
 }
 
-variable "enable_monitoring" {
-  description = "Enable Prometheus monitoring"
-  type        = bool
-  default     = true
-}
-
-variable "hostname" {
-  description = "Hostname to access the service"
-  type = string
-  default = "adguard.vicugna.party"
-}
-
 variable "resources" {
   description = "Resource requests and limits"
   type = object({
-    pod = string
+    sslRedirect = string
+    forwardHeaders = string
+    fullForwardFor = string
     storage = object({
       size  = string
       ip    = string
@@ -59,19 +49,11 @@ variable "resources" {
       memory = string
       cpu    = string
     })
-    service = object({
-      dns = object({
-        tcp = string
-        udp = string
-      })
-      web = object({
-        tcp = string
-        port = string
-      })
-    })
   })
   default = {
-    pod = "adguard"
+    sslRedirect = "true"
+    forwardHeaders = "true"
+    fullForwardFor = "trie"
     storage = {
       size  = "1Gi"
       ip    = "192.168.0.11"
@@ -79,7 +61,7 @@ variable "resources" {
       class = "nfs-fast"
     }
     requests = {
-      memory = "128Mi"
+      memory = "90Mi"
       cpu    = "100m"
     }
     limits = {
@@ -92,7 +74,7 @@ variable "resources" {
         udp = "dns-udp"
       }
       web = {
-        tcp = "web-tcp"
+        tcp  = "web-tcp"
         port = "3000"
       }
     }
