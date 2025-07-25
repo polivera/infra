@@ -4,7 +4,7 @@ resource "kubernetes_storage_class" "nfs_fast" {
     name = "nfs-fast"
   }
   storage_provisioner = "kubernetes.io/no-provisioner"
-  volume_binding_mode = "WaitForFirstConsumer"
+  volume_binding_mode = "Immediate"
 }
 
 resource "kubernetes_storage_class" "nfs_slow" {
@@ -12,5 +12,5 @@ resource "kubernetes_storage_class" "nfs_slow" {
     name = "nfs-slow"
   }
   storage_provisioner = "kubernetes.io/no-provisioner"
-  volume_binding_mode = "WaitForFirstConsumer"
+  volume_binding_mode = "Immediate"
 }

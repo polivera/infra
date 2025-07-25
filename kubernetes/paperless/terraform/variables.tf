@@ -17,6 +17,12 @@ variable "namespace" {
   default     = "paperless"
 }
 
+variable "hostname" {
+  description = "Application hostname"
+  type = string
+  default = "paperless.vicugna.party"
+}
+
 
 // -----------------------------------------------------------------------------
 
