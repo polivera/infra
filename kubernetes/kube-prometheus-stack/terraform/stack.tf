@@ -36,19 +36,14 @@ resource "helm_release" "prometheus_stack" {
   }
 
   # Enable use of secrets. This should tell terraform to use the grafana-admin-password secret
-  set {
-    name  = "grafana.admin.existingSecret"
-    value = "grafana-secrets"
+  set_sensitive {
+    name  = "grafana.adminUser"  # Note: no .admin. in the middle
+    value = local.secrets.grafana_admin_user
   }
 
-  set {
-    name  = "grafana.admin.userKey"
-    value = "grafana-admin-user"
-  }
-
-  set {
-    name  = "grafana.admin.passwordKey"
-    value = "grafana-admin-password"
+  set_sensitive {
+    name  = "grafana.adminPassword"  # Note: no .admin. in the middle
+    value = local.secrets.grafana_admin_password
   }
 
   # Enable ServiceMonitor for additional scraping
